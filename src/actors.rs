@@ -20,25 +20,12 @@ pub async fn actors_service(path: web::Path<String>, data: web::Data<AppState>) 
     }
 }
 
-pub fn actor_url(name: &str) -> String {
-    format!("{}/@{}/actor.json", config::CONFIG.base_url, name)
+pub fn actor_lookup(name: &String) -> Result<LocalActorPerson, ResolverError> {
+    Ok(LocalActorPerson::new(&name))
 }
 
-pub fn actor_inbox_url(name: &str) -> String {
-    format!("{}/@{}/inbox/", config::CONFIG.base_url, name)
-}
-
-pub fn actor_public_key(_name: &str) -> String {
-    fs::read_to_string("./public.pem").expect("Should be able to read public key")
-}
-
-pub fn actor_lookup(name: &String) -> Result<ActorPerson, ResolverError> {
-    Ok(ActorPerson::new(&name))
-}
-
-#[derive(Debug, Serialize, Deserialize, PartialEq)]
-#[serde(rename_all = "camelCase")]
-pub struct ActorPerson {
+#[derive(Serialize)]
+struct ActorPerson {
     #[serde(rename = "@context")]
     pub context: Vec<String>,
     pub id: String,
@@ -49,32 +36,62 @@ pub struct ActorPerson {
     pub public_key: ActorPublicKey,
 }
 
-impl ActorPerson {
-    pub fn new(name: &String) -> Self {
-        ActorPerson {
-            context: vec![
-                CONTEXT_ACTIVITYSTREAMS.to_string(),
-                CONTEXT_SECURITY.to_string(),
-            ],
-            id: actor_url(&name),
-            actor_type: ACTOR_TYPE_PERSON.to_string(),
-            preferred_username: name.clone(),
-            inbox: actor_inbox_url(&name),
-            public_key: ActorPublicKey {
-                id: format!("{}#main-key", actor_url(&name)),
-                owner: actor_url(&name),
-                public_key_pem: actor_public_key(&name),
-            },
-        }
-    }
-}
-
 #[derive(Debug, Serialize, Deserialize, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub struct ActorPublicKey {
     pub id: String,
     pub owner: String,
     pub public_key_pem: String,
+}
+
+#[derive(Debug, Deserialize, PartialEq)]
+#[serde(rename_all = "camelCase")]
+pub struct LocalActorPerson {
+    pub name: String,
+}
+
+impl LocalActorPerson {
+    pub fn new(name: &String) -> Self {
+        LocalActorPerson {
+            name: name.to_string(),
+        }
+    }
+
+    pub fn actor_url(&self) -> String {
+        format!("{}/@{}/actor.json", config::CONFIG.base_url, &self.name)
+    }
+
+    pub fn inbox_url(&self) -> String {
+        format!("{}/@{}/inbox/", config::CONFIG.base_url, &self.name)
+    }
+
+    pub fn public_key(&self) -> String {
+        fs::read_to_string("./public.pem").expect("Should be able to read public key")
+    }
+}
+
+impl ::serde::Serialize for LocalActorPerson {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        let ext = ActorPerson {
+            context: vec![
+                CONTEXT_ACTIVITYSTREAMS.to_string(),
+                CONTEXT_SECURITY.to_string(),
+            ],
+            id: self.actor_url(),
+            actor_type: ACTOR_TYPE_PERSON.to_string(),
+            preferred_username: self.name.clone(),
+            inbox: self.inbox_url(),
+            public_key: ActorPublicKey {
+                id: format!("{}#main-key", &self.actor_url()),
+                owner: self.actor_url(),
+                public_key_pem: self.public_key(),
+            },
+        };
+        Ok(ext.serialize(serializer)?)
+    }
 }
 
 /// An error that occured while handling an incoming WebFinger request.

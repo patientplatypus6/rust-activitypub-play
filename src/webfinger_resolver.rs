@@ -2,8 +2,8 @@ use actix_web::{get, web, HttpResponse, Responder};
 use serde::{Deserialize, Serialize};
 use serde_json;
 
+use crate::actors::actor_lookup;
 use crate::config;
-use crate::actors::actor_url;
 
 static WEBFINGER_ACTOR_REL: &str = "self";
 static WEBFINGER_ACTOR_MEDIA_TYPE: &str = "application/activity+json";
@@ -28,17 +28,20 @@ pub fn resolver(resource: &String) -> Result<WebfingerResult, ResolverError> {
     let domain = parsed_res.next().ok_or(ResolverError::InvalidResource)?;
     if domain != config::CONFIG.domain {
         // TODO: match multiple domains?
-        return Err(ResolverError::InvalidResource);
+        return Err(ResolverError::WrongDomain);
     }
 
-    Ok(WebfingerResult {
-        subject: resource.clone(),
-        links: vec![WebfingerLink {
-            rel: WEBFINGER_ACTOR_REL.to_string(),
-            mime_type: WEBFINGER_ACTOR_MEDIA_TYPE.to_string(),
-            href: actor_url(&user),
-        }],
-    })
+    match actor_lookup(&user.to_string()) {
+        Err(_err) => Err(ResolverError::NotFound),
+        Ok(actor) => Ok(WebfingerResult {
+            subject: resource.clone(),
+            links: vec![WebfingerLink {
+                rel: WEBFINGER_ACTOR_REL.to_string(),
+                mime_type: WEBFINGER_ACTOR_MEDIA_TYPE.to_string(),
+                href: actor.actor_url(),
+            }],
+        }),
+    }
 }
 
 /// Query parameters for webfinger resolver service
@@ -68,10 +71,8 @@ pub struct WebfingerLink {
 pub enum ResolverError {
     /// The requested resource was not correctly formatted
     InvalidResource,
-    /*
-    /// The website of the resource is not the current one.
-    WrongDomain,
     /// The requested resource was not found.
     NotFound,
-    */
+    /// The website of the resource is not the current one.
+    WrongDomain,
 }
