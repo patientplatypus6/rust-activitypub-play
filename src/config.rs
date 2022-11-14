@@ -14,7 +14,8 @@ lazy_static! {
         .parse::<u16>()
         .unwrap();
     pub static ref PROTOCOL: String = var("PROTOCOL").unwrap_or_else(|_| "https".to_owned());
-    pub static ref DOMAIN: String = var("DOMAIN").unwrap_or_else(|_| format!("{}:{}", *HOST, *PORT));
+    pub static ref DOMAIN: String =
+        var("DOMAIN").unwrap_or_else(|_| format!("{}:{}", *HOST, *PORT));
     pub static ref BASE_URL: String = var("BASE_URL").unwrap_or_else(|_| {
         if (*PORT == 80 && *PROTOCOL == "http") || (*PORT == 443 && *PROTOCOL == "https") {
             format!("{}://{}", *PROTOCOL, *HOST)

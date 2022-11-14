@@ -4,9 +4,7 @@ use serde_json;
 
 use crate::actors::actor_lookup;
 use crate::config;
-
-static WEBFINGER_ACTOR_REL: &str = "self";
-static WEBFINGER_ACTOR_MEDIA_TYPE: &str = "application/activity+json";
+use crate::constants::*;
 
 #[get("/.well-known/webfinger")]
 pub async fn resolver_service(info: web::Query<WebfingerParams>) -> impl Responder {
