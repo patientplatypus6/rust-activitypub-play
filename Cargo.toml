@@ -19,8 +19,19 @@ base64 = "0.13.1"
 rsa = "0.7.1"
 rand = "0.8.5"
 signature = "1.6.4"
+reqwest = { version = "0.11", features = ["json", "gzip", "multipart"] }
+clap = { version = "4.0.24", features = ["derive", "env", "cargo"] }
 
 #url = "2.3.1"
 #activitystreams = "0.7.0-alpha.20"
 #activitystreams-ext = "0.1.0-alpha.2"
 #nanoid = "0.4.0"
+
+[[bin]]
+name = "server"
+path = "src/server/bin/main.rs"
+
+[[bin]]
+name = "client"
+path = "src/client/bin/main.rs"
+

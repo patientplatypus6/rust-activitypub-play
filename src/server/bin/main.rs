@@ -1,16 +1,7 @@
-#[macro_use]
-extern crate lazy_static;
-
 use actix_web::{web, App, HttpServer};
 
-mod activities;
-mod actors;
-mod app;
-mod config;
-mod constants;
-mod objects;
-mod webfinger;
-mod http_signatures;
+use rust_activitypub_play::*;
+use rust_activitypub_play::config::CONFIG;
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
@@ -22,7 +13,7 @@ async fn main() -> std::io::Result<()> {
             .service(objects::notes_service)
             .service(activities::activities_service)
     })
-    .bind(("127.0.0.1", 8080))?
+    .bind((CONFIG.host.clone(), CONFIG.port))?
     .run()
     .await
 }

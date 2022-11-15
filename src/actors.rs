@@ -6,6 +6,7 @@ use actix_web::{get, web, HttpResponse, Responder};
 
 use crate::app::AppState;
 use crate::config;
+use crate::models::LocalActorPerson;
 use crate::constants::*;
 
 #[get("/@{name}/actor.json")]
@@ -32,75 +33,4 @@ pub enum ResolverError {
     /// The requested resource was not found.
     NotFound,
     */
-}
-
-#[derive(Debug, Serialize, Deserialize, PartialEq)]
-#[serde(rename_all = "camelCase")]
-struct ActorPerson {
-    #[serde(rename = "@context")]
-    pub context: Vec<String>,
-    pub id: String,
-    #[serde(rename = "type")]
-    pub actor_type: String,
-    pub preferred_username: String,
-    pub inbox: String,
-    pub public_key: ActorPublicKey,
-}
-
-#[derive(Debug, Serialize, Deserialize, PartialEq)]
-#[serde(rename_all = "camelCase")]
-pub struct ActorPublicKey {
-    pub id: String,
-    pub owner: String,
-    pub public_key_pem: String,
-}
-
-#[derive(Debug, Deserialize, PartialEq)]
-#[serde(rename_all = "camelCase")]
-pub struct LocalActorPerson {
-    pub name: String,
-}
-
-impl LocalActorPerson {
-    pub fn new(name: &String) -> Self {
-        LocalActorPerson {
-            name: name.to_string(),
-        }
-    }
-
-    pub fn actor_url(&self) -> String {
-        format!("{}/@{}/actor.json", config::CONFIG.base_url, &self.name)
-    }
-
-    pub fn inbox_url(&self) -> String {
-        format!("{}/@{}/inbox/", config::CONFIG.base_url, &self.name)
-    }
-
-    pub fn public_key(&self) -> String {
-        fs::read_to_string("./public.pem").expect("Should be able to read public key")
-    }
-}
-
-impl ::serde::Serialize for LocalActorPerson {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: serde::Serializer,
-    {
-        let ext = ActorPerson {
-            context: vec![
-                CONTEXT_ACTIVITYSTREAMS.to_string(),
-                CONTEXT_SECURITY.to_string(),
-            ],
-            id: self.actor_url(),
-            actor_type: ACTOR_TYPE_PERSON.to_string(),
-            preferred_username: self.name.clone(),
-            inbox: self.inbox_url(),
-            public_key: ActorPublicKey {
-                id: format!("{}#main-key", &self.actor_url()),
-                owner: self.actor_url(),
-                public_key_pem: self.public_key(),
-            },
-        };
-        Ok(ext.serialize(serializer)?)
-    }
 }
