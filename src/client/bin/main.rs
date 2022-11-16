@@ -3,31 +3,43 @@ use rust_activitypub_play::http_signatures;
 use rust_activitypub_play::models::LocalActorPerson;
 use sha2::{Digest, Sha256};
 
+use activitystreams::{
+    activity::ActorAndObject,
+    actor::{Actor, ApActor, Person},
+    iri_string::types::IriString,
+    unparsed::UnparsedMutExt,
+    prelude::*,
+    context,
+    security,
+};
+use activitystreams_ext::{Ext1, UnparsedExtension};
+
+use serde_json;
+use serde_json::json;
+
 #[actix_web::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
+
     let date = Utc::now();
     let date_rfc822 = date.to_rfc2822().replace("+0000", "GMT");
-    let document = r#"{
+
+    let document = json!({
         "@context": "https://www.w3.org/ns/activitystreams",
 
-        "id": "https://d012-71-36-108-249.ngrok.io/@doctor/create-^^ID^^",
+        "id": format!("https://d012-71-36-108-249.ngrok.io/@doctor/create-{}", date_rfc822),
         "type": "Create",
         "actor": "https://d012-71-36-108-249.ngrok.io/@doctor/actor.json",
 
         "object": {
-            "id": "https://d012-71-36-108-249.ngrok.io/@doctor/^^ID^^",
+            "id": format!("https://d012-71-36-108-249.ngrok.io/@doctor/{}", date_rfc822),
             "type": "Note",
-            "published": "^^PUBLISHED^^",
+            "published": date.to_rfc3339(),
             "attributedTo": "https://d012-71-36-108-249.ngrok.io/@doctor/actor.json",
             "inReplyTo": "https://dev.mastodon.lmorchard.com/@lmorchard/109339034898409760",
-            "content": "<p>Hello at - ^^MESSAGE^^</p>",
+            "content": format!("<p>Hello at - {}</p>", date_rfc822),
             "to": "https://www.w3.org/ns/activitystreams#Public"
         }
-    }"#
-    .to_string()
-    .replace("^^ID^^", &date_rfc822)
-    .replace("^^PUBLISHED^^", &date.to_rfc3339())
-    .replace("^^MESSAGE^^", &date_rfc822);
+    }).to_string();
 
     let mut hasher = Sha256::new();
     hasher.update(document.as_bytes());
@@ -63,3 +75,73 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("{:#?}", resp);
     Ok(())
 }
+
+/*
+#[derive(Clone, serde::Deserialize, serde::Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct PublicKeyInner {
+    pub id: IriString,
+    pub owner: IriString,
+    pub public_key_pem: String,
+}
+
+impl std::fmt::Debug for PublicKeyInner {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("PublicKeyInner")
+            .field("id", &self.id.to_string())
+            .field("owner", &self.owner.to_string())
+            .field("public_key_pem", &self.public_key_pem)
+            .finish()
+    }
+}
+
+#[derive(Clone, Debug, serde::Deserialize, serde::Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct PublicKey {
+    pub public_key: PublicKeyInner,
+}
+
+impl<U> UnparsedExtension<U> for PublicKey
+where
+    U: UnparsedMutExt,
+{
+    type Error = serde_json::Error;
+
+    fn try_from_unparsed(unparsed_mut: &mut U) -> Result<Self, Self::Error> {
+        Ok(PublicKey {
+            public_key: unparsed_mut.remove("publicKey")?,
+        })
+    }
+
+    fn try_into_unparsed(self, unparsed_mut: &mut U) -> Result<(), Self::Error> {
+        unparsed_mut.insert("publicKey", self.public_key)?;
+        Ok(())
+    }
+}
+
+pub type ExtendedPerson = Ext1<ApActor<Person>, PublicKey>;
+
+fn main() -> Result<(), anyhow::Error> {
+    let actor = ApActor::new("http://in.box".parse()?, Person::new());
+
+    let mut person = Ext1::new(
+        actor,
+        PublicKey {
+            public_key: PublicKeyInner {
+                id: "http://key.id".parse()?,
+                owner: "http://owner.id".parse()?,
+                public_key_pem: "asdfasdfasdf".to_owned(),
+            },
+        },
+    );
+
+    person.set_context(context()).add_context(security());
+
+    let any_base = person.into_any_base()?;
+    //println!("any_base: {:#?}", any_base);
+    let person = ExtendedPerson::from_any_base(any_base)?;
+
+    println!("person: {}", serde_json::to_string_pretty(&person).unwrap());
+    Ok(())
+}
+*/

@@ -3,6 +3,41 @@
 version = 3
 
 [[package]]
+name = "activitystreams"
+version = "0.7.0-alpha.20"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "459a89e7d449cf49e57044d59dcf637d2927362b7a75737c90bd3679ba476a78"
+dependencies = [
+ "activitystreams-kinds",
+ "iri-string",
+ "mime",
+ "serde",
+ "serde_json",
+ "time 0.3.17",
+]
+
+[[package]]
+name = "activitystreams-ext"
+version = "0.1.0-alpha.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "bb8e19a0810cc25df3535061a08b7d8f8a734d309ea4411c57a9767e4a2ffa0e"
+dependencies = [
+ "activitystreams",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
+name = "activitystreams-kinds"
+version = "0.2.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "6d014a4fb8828870b7b46bee6257b9a89d06188ae8d435381ba94f14c8c697d8"
+dependencies = [
+ "iri-string",
+ "serde",
+]
+
+[[package]]
 name = "actix-codec"
 version = "0.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -230,6 +265,12 @@ checksum = "819e7219dbd41043ac279b19830f2efc897156490d7fd6ea916720117ee66311"
 dependencies = [
  "libc",
 ]
+
+[[package]]
+name = "anyhow"
+version = "1.0.66"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "216261ddc8289130e551ddcd5ce8a064710c0d064a4d2895c67151c92b5443f6"
 
 [[package]]
 name = "async-compression"
@@ -868,6 +909,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f88c5561171189e69df9d98bcf18fd5f9558300f7ea7b801eb8a0fd748bd8745"
 
 [[package]]
+name = "iri-string"
+version = "0.5.6"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "bf071934ee7ee97e52fa1868a9540a7885eab75926bd70794030304a9797cea1"
+dependencies = [
+ "serde",
+]
+
+[[package]]
 name = "itoa"
 version = "1.0.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1402,7 +1452,10 @@ dependencies = [
 name = "rust-activitypub-play"
 version = "0.1.0"
 dependencies = [
+ "activitystreams",
+ "activitystreams-ext",
  "actix-web",
+ "anyhow",
  "base64",
  "chrono",
  "clap",
@@ -1417,6 +1470,7 @@ dependencies = [
  "serde_json",
  "sha2",
  "signature",
+ "url",
 ]
 
 [[package]]
