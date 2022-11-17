@@ -1,3 +1,4 @@
+use dotenv::dotenv;
 use std::env::var;
 
 pub struct Config {
@@ -7,8 +8,13 @@ pub struct Config {
     pub base_url: String,
 }
 
+pub fn init() {
+    dotenv().ok();
+    env_logger::init_from_env(env_logger::Env::new().default_filter_or("info"));
+}
+
 lazy_static! {
-    pub static ref HOST: String = var("host").unwrap_or_else(|_| "127.0.0.1".to_owned());
+    pub static ref HOST: String = var("HOST").unwrap_or_else(|_| "127.0.0.1".to_owned());
     pub static ref PORT: u16 = var("PORT")
         .unwrap_or_else(|_| "8080".to_owned())
         .parse::<u16>()

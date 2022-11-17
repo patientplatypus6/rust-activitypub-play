@@ -36,7 +36,7 @@ pub fn resolver(resource: &String) -> Result<WebfingerResult, ResolverError> {
             links: vec![WebfingerLink {
                 rel: WEBFINGER_ACTOR_REL.to_string(),
                 mime_type: WEBFINGER_ACTOR_MEDIA_TYPE.to_string(),
-                href: actor.actor_url(),
+                href: actor.actor_id(),
             }],
         }),
     }

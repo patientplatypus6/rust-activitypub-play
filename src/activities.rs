@@ -6,7 +6,6 @@ use serde_json;
 use crate::actors;
 use crate::app::AppState;
 use crate::config;
-use crate::models::LocalActorPerson;
 use crate::constants::*;
 use crate::objects::ObjectNote;
 
@@ -33,7 +32,7 @@ pub async fn activities_service(
 }
 
 pub fn activity_lookup(
-    actor: &LocalActorPerson,
+    actor: &actors::LocalActorPerson,
     activity_id: &String,
 ) -> Result<ActivityCreateNote, LookupError> {
     Ok(ActivityCreateNote::new(&actor, &activity_id))
@@ -57,15 +56,15 @@ pub struct ActivityCreateNote {
 }
 
 impl ActivityCreateNote {
-    pub fn new(actor: &LocalActorPerson, id: &String) -> Self {
+    pub fn new(actor: &actors::LocalActorPerson, id: &String) -> Self {
         ActivityCreateNote {
             context: CONTEXT_ACTIVITYSTREAMS.to_string(),
             id: id.clone(),
             activity_type: ACTIVITY_TYPE_CREATE.to_string(),
-            actor: actor.actor_url(),
+            actor: actor.actor_id(),
             object: ObjectNote::new(
                 &"bar".to_string(),
-                &actor.actor_url(),
+                &actor.actor_id(),
                 &"https://dev.mastodon.lmorchard.com/@lmorchard/109339034898409760".to_string(),
                 &"hello world".to_string(),
             ),

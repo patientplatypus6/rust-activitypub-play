@@ -3,7 +3,6 @@ extern crate lazy_static;
 
 use actix_web::{web, App, HttpServer};
 
-pub mod models;
 pub mod activities;
 pub mod actors;
 pub mod app;
