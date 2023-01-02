@@ -6,6 +6,19 @@ use crate::actors::actor_lookup;
 use crate::config;
 use crate::constants::*;
 
+// use log::{info};
+use std::env;
+
+use std::fs;
+use std::fs::File;
+use std::io::prelude::*;
+
+use std::io::Write;
+
+use log::{debug, error, log_enabled, info, Level};
+
+// env_logger::init();
+
 #[get("/.well-known/webfinger")]
 pub async fn resolver_service(info: web::Query<WebfingerParams>) -> impl Responder {
     match resolver(&info.resource) {
@@ -15,6 +28,9 @@ pub async fn resolver_service(info: web::Query<WebfingerParams>) -> impl Respond
 }
 
 pub fn resolver(resource: &String) -> Result<WebfingerResult, ResolverError> {
+
+    info!("something");
+
     let mut parsed_query = resource.splitn(2, ':');
     let res_prefix = parsed_query.next().ok_or(ResolverError::InvalidResource)?;
     if res_prefix != "acct" {

@@ -1,0 +1,1 @@
+RUSTFLAGS="$RUSTFLAGS -A warnings" cargo build
